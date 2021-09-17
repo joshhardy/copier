@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -411,7 +412,14 @@ func set(to, from reflect.Value, deepCopy bool) bool {
 					toKind = reflect.TypeOf(to.Interface()).Kind()
 				}
 			}
-			if toKind == reflect.Struct || toKind == reflect.Map || toKind == reflect.Slice {
+			switch toKind {
+			case reflect.Struct:
+				if _, isTime := to.Interface().(time.Time); isTime {
+						// only shallow copy time.Time
+						return set(to, from, false)
+				}
+				return false
+			case reflect.Map, reflect.Slice:
 				return false
 			}
 		}
